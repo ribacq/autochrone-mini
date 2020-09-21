@@ -2,7 +2,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,12 +31,36 @@ func RootGET(c *gin.Context) {
 
 // RootPOST project creation and redirect to project
 func RootPOST(c *gin.Context) {
-	c.Redirect(http.StatusFound, "/")
+	name := c.PostForm("name")
+	slug := c.PostForm("slug")
+	admin := c.PostForm("admin")
+	description := c.PostForm("description")
+	targetDate, err := time.Parse("2006-01-02", c.PostForm("target-date"))
+
+	if name == "" || slug == "" || admin == "" || len(name) > 140 || len(name) > 140 || len(admin) > 140 || len(description) > 1000 || err != nil {
+		c.Redirect(http.StatusBadRequest, "/")
+		return
+	}
+
+	project := NewProject(slug, name, description, targetDate)
+	if project == nil {
+		c.Redirect(http.StatusInternalServerError, "/")
+		return
+	}
+	user := project.NewUser(admin, true)
+	if user == nil {
+		c.Redirect(http.StatusInternalServerError, "/")
+		return
+	}
+	c.Redirect(http.StatusFound, fmt.Sprintf("/%s", project.Slug))
 }
 
 // ProjectGET read-only project or user write access (add notes, delete own notes, with ?auth=str)
 func ProjectGET(c *gin.Context) {
-	c.Redirect(http.StatusFound, "/")
+	project := GetProjectBySlug(c.Param("pslug"))
+	c.HTML(http.StatusOK, "project-read-only-page", gin.H{
+		"Project": project,
+	})
 }
 
 // ProjectPOST add note
