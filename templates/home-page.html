@@ -1,46 +1,3 @@
-{{ define "header" }}
-<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>autochrone</title>
-		<style type="text/css">
-			body {
-				margin: 40px auto;
-				max-width: 650px;
-				line-height: 1.6;
-				font-size: 18px;
-				color: #444;
-				padding:0 10px;
-			}
-
-			h1, h2, h3 {
-				line-height: 1.2;
-			}
-
-			form label, form button {
-				display: block;
-				margin: 0.2em;
-			}
-
-			form input {
-				display: block;
-			}
-			
-			form textarea {
-				display: block;
-				resize: vertical;
-			}
-		</style>
-	</head>
-	<body>
-		<header><h1>autochrone</h1></header>
-{{ end }}
-{{ define "footer" }}
-	</body>
-</html>
-{{ end }}
 {{ define "home-page" }}
 {{ template "header" }}
 <section>
@@ -72,13 +29,6 @@
 <section>
 	<h2>about</h2>
 	<p>autochrone created by <a href="https://laitues.net/">quentin ribac</a></p>
-</section>
-{{ template "footer" }}
-{{ end }}
-{{ define "project-read-only-page" }}
-{{ template "header" }}
-<section>
-	<h2>{{ .Project.Name }}</h2>
 </section>
 {{ template "footer" }}
 {{ end }}
