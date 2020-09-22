@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -11,6 +12,15 @@ import (
 
 func main() {
 	r := gin.Default()
+
+	r.SetFuncMap(template.FuncMap{
+		"prettyDate": func(t time.Time) string {
+			return t.Format("2 Jan. 2006")
+		},
+		"formDate": func(t time.Time) string {
+			return t.Format("2006-01-02")
+		},
+	})
 
 	r.LoadHTMLGlob("./templates/*.html")
 

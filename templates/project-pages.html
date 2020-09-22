@@ -2,6 +2,44 @@
 {{ template "header" }}
 <section>
 	<h2>{{ .Project.Name }}</h2>
+	<p class="project-description">{{ .Project.Description }}</p>
+	<time datetime="{{ .Project.CreationDate | formDate }}">{{ .Project.CreationDate | prettyDate }}</time>
+	—
+	<time datetime="{{ .Project.TargetDate | formDate }}">{{ .Project.TargetDate | prettyDate }}</time>
+
+	<h3>users</h3>
+	<ul>
+	{{ range .Project.Users }}
+		<li>{{ .Name }}</li>
+	{{ else }}
+		<li><em>no users</em></li>
+	{{ end }}
+	</ul>
+
+	<h3>measures</h3>
+	<ul>
+	{{ range .Project.Measures }}
+		<li>
+			[{{ .Code }}] {{ .Name }} <em>({{ .Unit }})</em> {{ if .HasGoalLow }}[low {{ .GoalLow }}]{{ end }} {{ if .HasGoalHigh }}[high {{ .GoalHigh }}]{{ end }}
+		</li>
+	{{ else }}
+		<li><em>no measures</em></li>
+	{{ end }}
+	</ul>
+
+	<h3>notes</h3>
+	<table>
+		<thead>
+			<tr><th>user</th><th>date</th><th>comment</th><th>value(s)</th></tr>
+		</thead>
+		<tbody>
+		{{ range .Project.Notes }}
+			<tr><td>{{ .UserID }}</td><td>{{ .CreationDate | prettyDate }}</td><td>{{ .Comment }}</td><td>{{ range $measureId, $value := .MeasuresValues }}{{ $value }}({{$measureId }}) {{ end }}</td></tr>
+		{{ else }}
+			<tr><td colspan="4"><em>no notes</em></td></tr>
+		{{ end }}
+		</tbody>
+	</table>
 </section>
 {{ template "footer" }}
 {{ end }}
