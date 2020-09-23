@@ -15,6 +15,14 @@
 		<li><em>no users</em></li>
 	{{ end }}
 	</ul>
+	{{ if .AdminCode }}
+	<form action="#" method="post">
+		<label>username (required)
+			<input type="text" maxlength="140" placeholder="J.R.R. Tolkien" name="username" required>
+		</label>
+		<button type="submit">add user</button>
+	</form>
+	{{ end }}
 
 	<h3>measures</h3>
 	<ul>

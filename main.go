@@ -3,15 +3,35 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
+	"os"
+	"bufio"
+	"log"
 	"html/template"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
+
+	englishWordsFile, err := os.Open("assets/words_alpha.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer englishWordsFile.Close()
+	scanner := bufio.NewScanner(englishWordsFile)
+	var englishWords []string
+	for scanner.Scan() {
+		englishWords = append(englishWords, scanner.Text())
+	}
+	if err = scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	rand.Seed(time.Now().UnixNano())
+	fmt.Printf("%s-%s-%s-%s\n", englishWords[rand.Intn(len(englishWords))], englishWords[rand.Intn(len(englishWords))], englishWords[rand.Intn(len(englishWords))], englishWords[rand.Intn(len(englishWords))])
 
 	r.SetFuncMap(template.FuncMap{
 		"prettyDate": func(t time.Time) string {
@@ -70,6 +90,7 @@ func ProjectGET(c *gin.Context) {
 	project := GetProjectBySlug(c.Param("pslug"))
 	c.HTML(http.StatusOK, "project-read-only-page", gin.H{
 		"Project": project,
+		"AdminCode": c.Query("adminCode"),
 	})
 }
 
