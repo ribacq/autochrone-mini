@@ -36,7 +36,7 @@ func main() {
 	r.GET("/:pslug", ProjectGET)
 	r.POST("/:pslug", ProjectPOST)
 
-	r.Run("autochrone.herokuapp.com:443")
+	r.Run(":443")
 }
 
 // RootGET project creation form + about
