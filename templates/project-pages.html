@@ -6,9 +6,13 @@
 	<aside>
 		<h2><a href="{{ .Project.Slug }}">{{ .Project.Name }}</a></h2>
 		<p class="project-description">{{ .Project.Description }}</p>
-		<time datetime="{{ .Project.CreationDate | formDate }}">{{ .Project.CreationDate | prettyDate }}</time>
-		—
-		<time datetime="{{ .Project.TargetDate | formDate }}">{{ .Project.TargetDate | prettyDate }}</time>
+		<p>
+			<time datetime="{{ .Project.CreationDate | formDate }}">{{ .Project.CreationDate | prettyDate }}</time>
+			—
+			<time datetime="{{ .Project.TargetDate | formDate }}">{{ .Project.TargetDate | prettyDate }}</time>
+			<br>
+			{{ with .Project.DaysLeft }}{{ if ge . 0 }}{{ . }} days left{{ else }}late: {{ . }} days{{ end }}{{ end }}
+		</p>
 
 		<h3>users</h3>
 		<ul>
@@ -37,9 +41,10 @@
 
 		<h3>measures</h3>
 		<ul>
+		{{ $mt := .Project.MeasuresTotals }}
 		{{ range .Project.Measures }}
 			<li>
-				<kbd>[{{ .Code }}]</kbd> {{ .Name }} <em>({{ .Unit }})</em> {{ if .HasMin }}min: {{ .Goal }}{{ else if .HasMax }}max: {{ .Goal }}{{ end }}
+				<kbd>[{{ .Code }}]</kbd> {{ .Name }}: {{ index $mt .ID }} {{ .Unit }} {{ if .HasMin }}/ {{ .Goal }}{{ else if .HasMax }}(stay under {{ .Goal }}){{ end }}
 			</li>
 		{{ else }}
 			<li><em>no measures</em></li>
@@ -106,7 +111,7 @@
 						<table>
 						{{ range $measureId, $value := .MeasuresValues }}
 							{{ $measure := index $project.Measures $measureId }}
-							<tr><td>{{ $measure.Name }}: {{ $value }} {{ $measure.Unit }}</td></tr>
+							<tr><td><kbd>[{{ $measure.Code }}]</kbd> {{ $value }}</td></tr>
 						{{ end }}
 						</table>
 					</td>
