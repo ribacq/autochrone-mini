@@ -5,6 +5,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"log"
+	"os"
 	"time"
 )
 
@@ -13,7 +14,9 @@ var db *sqlx.DB
 func init() {
 	// connect to database
 	var err error
-	db, err = sqlx.Open("postgres", "user=autochrone password=autochrone dbname=achr sslmode=disable")
+	// for local tests
+	//db, err = sqlx.Open("postgres", "user=autochrone password=autochrone dbname=achr sslmode=disable")
+	db, err = sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		panic("could not connect to database")
 	}
@@ -29,7 +32,7 @@ type Project struct {
 	TargetDate   time.Time `db:"target_date"`
 	Users        map[int]*User
 	Measures     map[int]*Measure
-	Notes        map[int]*Note
+	Notes        []*Note
 }
 
 // User an autochrone user
@@ -158,7 +161,7 @@ func (p *Project) NewNote(userID int, comment string, measuresValues map[int]int
 			n.MeasuresValues[measureID] = measureValue
 		}
 	}
-	p.Notes[n.ID] = n
+	p.Notes = append([]*Note{n}, p.Notes...)
 	return n
 }
 
@@ -221,11 +224,11 @@ func (p *Project) FetchMeasures() error {
 
 // FetchNotes loads notes for a project
 func (p *Project) FetchNotes() error {
-	rows, err := db.Queryx("select id, project_id, user_id, creation_date, comment from notes where project_id = $1", p.ID)
+	rows, err := db.Queryx("select id, project_id, user_id, creation_date, comment from notes where project_id = $1 order by creation_date desc", p.ID)
 	if err != nil {
 		return err
 	}
-	p.Notes = make(map[int]*Note)
+	p.Notes = []*Note{}
 	for rows.Next() {
 		n := &Note{
 			MeasuresValues: make(map[int]int),
@@ -244,7 +247,7 @@ func (p *Project) FetchNotes() error {
 			}
 			n.MeasuresValues[measureId] = value
 		}
-		p.Notes[n.ID] = n
+		p.Notes = append(p.Notes, n)
 	}
 	return nil
 }

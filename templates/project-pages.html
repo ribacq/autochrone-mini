@@ -25,32 +25,33 @@
 			<li><em>no users</em></li>
 		{{ end }}
 		</ul>
+		<h3>measures</h3>
+		<ul>
+		{{ $mt := .Project.MeasuresTotals }}
+		{{ range .Project.Measures }}
+			<li>
+				<kbd>[{{ .Code }}]</kbd> {{ .Name }}:
+				{{ if (eq .Unit "minutes") }}{{ index $mt .ID | prettyMinutes }}{{ else }}{{ index $mt .ID }}{{ end }}
+				{{ .Unit }} {{ if .HasMin }}/ {{ .Goal }}{{ else if .HasMax }}(stay under {{ .Goal }}){{ end }}
+			</li>
+		{{ else }}
+			<li><em>no measures</em></li>
+		{{ end }}
+		</ul>
+
 		{{ if .User }}{{ if .User.IsAdmin }}
 		<h4>add user</h4>
 		<form action="#" method="post">
 			<input type="hidden" name="query" value="new-user">
-			<label>username (required)
-				<input type="text" maxlength="140" placeholder="J.R.R. Tolkien" name="username" required>
+			<label>name (required)
+				<input type="text" maxlength="140" placeholder="J.R.R. Tolkien" name="name" required>
 			</label>
 			<label>admin
 				<input type="checkbox" name="is-admin">
 			</label>
 			<button type="submit">add user</button>
 		</form>
-		{{ end }}{{ end }}
 
-		<h3>measures</h3>
-		<ul>
-		{{ $mt := .Project.MeasuresTotals }}
-		{{ range .Project.Measures }}
-			<li>
-				<kbd>[{{ .Code }}]</kbd> {{ .Name }}: {{ index $mt .ID }} {{ .Unit }} {{ if .HasMin }}/ {{ .Goal }}{{ else if .HasMax }}(stay under {{ .Goal }}){{ end }}
-			</li>
-		{{ else }}
-			<li><em>no measures</em></li>
-		{{ end }}
-		</ul>
-		{{ if .User }}{{ if .User.IsAdmin }}
 		<h4>add measure</h4>
 		<form action="#" method="post">
 			<input type="hidden" name="query" value="new-measure">
@@ -105,13 +106,13 @@
 			{{ range .Project.Notes }}
 				<tr>
 					<td>{{ (index $project.Users .UserID).Name }}</td>
-					<td>{{ .CreationDate | prettyDate }}</td>
+					<td>{{ .CreationDate | prettyDateTime }}</td>
 					<td>{{ .Comment }}</td>
 					<td>
 						<table>
 						{{ range $measureId, $value := .MeasuresValues }}
 							{{ $measure := index $project.Measures $measureId }}
-							<tr><td><kbd>[{{ $measure.Code }}]</kbd> {{ $value }}</td></tr>
+							<tr><td><kbd title="{{ $measure.Name }} ({{ $measure.Unit }})">[{{ $measure.Code }}]</kbd> {{ if (eq $measure.Unit "minutes") }}{{ $value | prettyMinutes }}{{ else }}{{ $value }}{{ end }}</td></tr>
 						{{ end }}
 						</table>
 					</td>

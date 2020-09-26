@@ -18,8 +18,14 @@ func main() {
 		"prettyDate": func(t time.Time) string {
 			return t.Format("2 Jan. 2006")
 		},
+		"prettyDateTime": func(t time.Time) string {
+			return t.Format("2 Jan. 2006 15h04")
+		},
 		"formDate": func(t time.Time) string {
 			return t.Format("2006-01-02")
+		},
+		"prettyMinutes": func(minutes int) string {
+			return fmt.Sprintf("%vh%02dm", minutes/60, minutes%60)
 		},
 	})
 
@@ -30,7 +36,7 @@ func main() {
 	r.GET("/:pslug", ProjectGET)
 	r.POST("/:pslug", ProjectPOST)
 
-	r.Run(":8080")
+	r.Run(":80")
 }
 
 // RootGET project creation form + about
@@ -88,7 +94,7 @@ func ProjectPOST(c *gin.Context) {
 
 	switch c.PostForm("query") {
 	case "new-user":
-		username := c.PostForm("username")
+		username := c.PostForm("name")
 		if user.IsAdmin && username != "" && len(username) <= 140 {
 			project.NewUser(username, c.PostForm("is-admin") == "on")
 		}
