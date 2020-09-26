@@ -1,1 +1,1 @@
-web: ./autochrone-mini
+web: ./bin/autochrone-mini
