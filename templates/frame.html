@@ -7,13 +7,38 @@
 		<title>{{ with .Project }}{{ .Name }} - {{ end }}autochrone</title>
 		<style type="text/css">
 			body {
-				margin: 40px auto;
-				max-width: 650px;
+				margin: 0 auto;
+				padding: 0;
+				max-width: 1100px;
 				line-height: 1.6;
 				font-size: 18px;
+				background: #eee;
 				color: #444;
-				padding:0 10px;
 				font-family: sans-serif;
+			}
+
+			section {
+				display: flex;
+				flex-flow: row wrap;
+				justify-content: flex-start;
+			}
+
+			header h1 {
+				padding: 10px;
+			}
+
+			aside {
+				flex: 1 1 350px;
+				margin: 0;
+				padding: 10px;
+			}
+
+			article {
+				background: #fff;
+				border: 1px solid #444;
+				flex: 1 1 500px;
+				margin: 0;
+				padding: 20px;
 			}
 
 			h1, h2, h3 {

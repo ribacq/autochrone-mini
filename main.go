@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -88,8 +89,35 @@ func ProjectPOST(c *gin.Context) {
 	switch c.PostForm("query") {
 	case "new-user":
 		username := c.PostForm("username")
-		if user.IsAdmin && username != "" {
+		if user.IsAdmin && username != "" && len(username) <= 140 {
 			project.NewUser(username, c.PostForm("is-admin") == "on")
+		}
+	case "new-measure":
+		code := c.PostForm("code")
+		name := c.PostForm("name")
+		unit := c.PostForm("unit")
+		goalDirection := c.PostForm("goal-direction")
+		goal, err := strconv.Atoi(c.PostForm("goal"))
+
+		if user.IsAdmin && code != "" && len(code) <= 42 && name != "" && len(name) <= 140 && unit != "" && len(unit) <= 42 {
+			if goalDirection == "none" || ((goalDirection == "min" || goalDirection == "max") && err == nil) {
+				project.NewMeasure(code, name, unit, goalDirection, goal)
+			}
+		}
+	case "new-note":
+		comment := c.PostForm("comment")
+		if comment != "" && len(comment) <= 1000 {
+			var err error
+			measuresValues := make(map[int]int)
+			for measureID := range project.Measures {
+				measuresValues[measureID], err = strconv.Atoi(c.PostForm(fmt.Sprintf("measure-%v", measureID)))
+				if err != nil {
+					delete(measuresValues, measureID)
+				}
+			}
+			if err == nil {
+				project.NewNote(user.ID, comment, measuresValues)
+			}
 		}
 	}
 

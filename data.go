@@ -71,7 +71,7 @@ type Note struct {
 
 // NewProject creates a new project in the database
 func NewProject(slug, name, description string, targetDate time.Time) *Project {
-	creationDate := time.Now()
+	creationDate := time.Now().UTC()
 	row := db.QueryRowx("insert into projects (slug, name, description, creation_date, target_date) values ($1, $2, $3, $4, $5) returning id", slug, name, description, creationDate, targetDate)
 	var id int
 	if err := row.Scan(&id); err != nil {
@@ -89,10 +89,10 @@ func NewProject(slug, name, description string, targetDate time.Time) *Project {
 	}
 }
 
-// AddUser adds a user to an existing project
+// NewUser adds a user to an existing project
 func (p *Project) NewUser(name string, isAdmin bool) *User {
 	slug := RandomSlug()
-	creationDate := time.Now()
+	creationDate := time.Now().UTC()
 	row := db.QueryRowx("insert into users (project_id, is_admin, slug, name, creation_date) values ($1, $2, $3, $4, $5) returning id", p.ID, isAdmin, slug, name, creationDate)
 	var id int
 	if err := row.Scan(&id); err != nil {
@@ -109,6 +109,57 @@ func (p *Project) NewUser(name string, isAdmin bool) *User {
 	}
 	p.Users[u.ID] = u
 	return u
+}
+
+// NewMeasure adds a measure to an existing project
+func (p *Project) NewMeasure(code, name, unit, goalDirection string, goal int) *Measure {
+	row := db.QueryRowx("insert into measures (project_id, code, name, unit, goal_direction, goal) values ($1, $2, $3, $4, $5, $6) returning id", p.ID, code, name, unit, goalDirection, goal)
+	var id int
+	if err := row.Scan(&id); err != nil {
+		log.Print(err)
+		return nil
+	}
+	m := &Measure{
+		ID:            id,
+		ProjectID:     p.ID,
+		Code:          code,
+		Name:          name,
+		Unit:          unit,
+		GoalDirection: goalDirection,
+		Goal:          goal,
+	}
+	p.Measures[m.ID] = m
+	return m
+}
+
+func (p *Project) NewNote(userID int, comment string, measuresValues map[int]int) *Note {
+	creationDate := time.Now().UTC()
+	row := db.QueryRowx("insert into notes (project_id, user_id, creation_date, comment) values ($1, $2, $3, $4) returning id", p.ID, userID, creationDate, comment)
+	var id int
+	if err := row.Scan(&id); err != nil {
+		log.Print(err)
+		return nil
+	}
+	n := &Note{
+		ID:             id,
+		ProjectID:      p.ID,
+		CreationDate:   creationDate,
+		Comment:        comment,
+		MeasuresValues: make(map[int]int),
+	}
+	for measureID, measureValue := range measuresValues {
+		if _, ok := p.Measures[measureID]; ok {
+			row = db.QueryRowx("insert into notes_measures_values (note_id, measure_id, value) values ($1, $2, $3) returning id", n.ID, measureID, measureValue)
+			var id int
+			if err := row.Scan(&id); err != nil {
+				log.Print(err)
+				return nil
+			}
+			n.MeasuresValues[measureID] = measureValue
+		}
+	}
+	p.Notes[n.ID] = n
+	return n
 }
 
 // GetProjectBySlug returns an existing project

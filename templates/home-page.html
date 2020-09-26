@@ -1,34 +1,36 @@
 {{ define "home-page" }}
 {{ template "header" }}
 <section>
-	<h2>new project</h2>
-	<form action="/" method="post">
-		<label>project name (required)
-			<input type="text" maxlength="140" placeholder="Discworld" name="name" required>
-		</label>
+	<article>
+		<h2>new project</h2>
+		<form action="/" method="post">
+			<label>project name (required)
+				<input type="text" maxlength="140" placeholder="Discworld" name="name" required>
+			</label>
 
-		<label>project slug (required)
-			<input type="text" maxlength="140" placeholder="discworld" name="slug" required>
-		</label>
+			<label>project slug (required)
+				<input type="text" maxlength="140" placeholder="discworld" name="slug" required>
+			</label>
 
-		<label>your name (required)
-			<input type="text" maxlength="140" placeholder="Terry Pratchett" name="admin" required>
-		</label>
+			<label>your name (required)
+				<input type="text" maxlength="140" placeholder="Terry Pratchett" name="admin" required>
+			</label>
 
-		<label>set a target end date (optional)
-			<input type="date" name="target-date">
-		</label>
+			<label>set a target end date (optional)
+				<input type="date" name="target-date">
+			</label>
 
-		<label>description (optional)
-			<textarea cols="42" maxlength="1000", placeholder="A’Tuin et al." name="description"></textarea>
-		</label>
+			<label>description (optional)
+				<textarea cols="42" maxlength="1000", placeholder="A’Tuin et al." name="description"></textarea>
+			</label>
 
-		<button type="submit">create project</button>
-	</form>
-</section>
-<section>
-	<h2>about</h2>
-	<p>autochrone created by <a href="https://laitues.net/">quentin ribac</a></p>
+			<button type="submit">create project</button>
+		</form>
+	</article>
+	<aside>
+		<h2>about</h2>
+		<p>autochrone created by <a href="https://laitues.net/">quentin ribac</a></p>
+	</aside>
 </section>
 {{ template "footer" }}
 {{ end }}
