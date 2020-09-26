@@ -13,6 +13,7 @@
 				font-size: 18px;
 				color: #444;
 				padding:0 10px;
+				font-family: sans-serif;
 			}
 
 			h1, h2, h3 {
@@ -24,7 +25,7 @@
 				margin: 0.2em;
 			}
 
-			form input {
+			form input, form select {
 				display: block;
 			}
 			
@@ -36,6 +37,7 @@
 			table, table td, table th {
 				border: 1px solid #444;
 				border-collapse: collapse;
+				margin: none;
 			}
 
 			table td, table th {
@@ -45,10 +47,15 @@
 			table th {
 				background: #ccc;
 			}
+
+			table table, table table * {
+				border: none;
+				padding: none;
+			}
 		</style>
 	</head>
 	<body>
-		<header><h1>autochrone</h1></header>
+		<header><a href="/"><h1>autochrone</h1></a></header>
 {{ end }}
 {{ define "footer" }}
 	</body>

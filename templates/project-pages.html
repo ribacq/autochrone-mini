@@ -1,5 +1,7 @@
-{{ define "project-read-only-page" }}
+{{ define "project-page" }}
 {{ template "header" }}
+{{ $project := .Project }}
+{{ $user := .User }}
 <section>
 	<h2>{{ .Project.Name }}</h2>
 	<p class="project-description">{{ .Project.Description }}</p>
@@ -10,39 +12,102 @@
 	<h3>users</h3>
 	<ul>
 	{{ range .Project.Users }}
-		<li>{{ .Name }}</li>
+		<li>
+			{{ if $user }}{{ if eq $user.ID .ID }}<strong>me&gt;</strong>{{ end }}{{ end }} {{ if .IsAdmin }}&#128081;{{ end }} {{ .Name }}
+			{{ if $user }}{{ if $user.IsAdmin }}<input type="text" readonly value="http://localhost:8080/{{ $project.Slug }}/?auth={{ .Slug }}">{{ end }}{{ end }}
+		</li>
 	{{ else }}
 		<li><em>no users</em></li>
 	{{ end }}
 	</ul>
-	{{ if .AdminCode }}
+	{{ if .User }}{{ if .User.IsAdmin }}
+	<h4>add user</h4>
 	<form action="#" method="post">
+		<input type="hidden" name="query" value="new-user">
 		<label>username (required)
 			<input type="text" maxlength="140" placeholder="J.R.R. Tolkien" name="username" required>
 		</label>
+		<label>admin
+			<input type="checkbox" name="is-admin">
+		</label>
 		<button type="submit">add user</button>
 	</form>
-	{{ end }}
+	{{ end }}{{ end }}
 
 	<h3>measures</h3>
 	<ul>
 	{{ range .Project.Measures }}
 		<li>
-			[{{ .Code }}] {{ .Name }} <em>({{ .Unit }})</em> {{ if .HasGoalLow }}[low {{ .GoalLow }}]{{ end }} {{ if .HasGoalHigh }}[high {{ .GoalHigh }}]{{ end }}
+			<kbd>[{{ .Code }}]</kbd> {{ .Name }} <em>({{ .Unit }})</em> {{ if .HasMin }}min: {{ .Goal }}{{ else if .HasMax }}max: {{ .Goal }}{{ end }}
 		</li>
 	{{ else }}
 		<li><em>no measures</em></li>
 	{{ end }}
 	</ul>
+	{{ if .User }}{{ if .User.IsAdmin }}
+	<h4>add measure</h4>
+	<form action="#" method="post">
+		<input type="hidden" name="query" value="new-measure">
+		<label>code (technical, must be unique)
+			<input type="text" maxlength="42" placeholder="harvest" name="code" required>
+		</label>
+		<label>name
+			<input type="text" maxlength="140" placeholder="Pumpkins harvested this year" name="name" required>
+		</label>
+		<label>unit
+			<input type="text" maxlength="42" placeholder="pumpkins" name="unit" required>
+		</label>
+		<label>goal type
+			<select name="goal-direction" required>
+				<option value="none" selected>none</option>
+				<option value="min">min (I must be over this value)</option>
+				<option value="max">max (I must be under this value)</option>
+			</select>
+		</label>
+		<label>goal
+			<input type="number" step="1" name="goal" placeholder="0">
+		</label>
+		<button type="submit">add measure</button>
+	</form>
+	{{ end }}{{ end }}
 
 	<h3>notes</h3>
+	{{ if .User }}
+	<h4>add note</h4>
+	<form action="#" method="post">
+		<input type="hidden" name="query" value="new-note">
+		{{ range $measureId, $value := $project.Measures }}
+		{{ $measure := index $project.Measures $measureId }}
+		<label>[{{ $measure.Code }}] {{ $measure.Name }}
+			<input type="number" step="1" name="measure-{{ $measure.ID }}" placeholder="0">
+		</label>
+		{{ end }}
+		<label>comment
+			<textarea cols="70" name="comment" placeholder="how’s your magic?" required></textarea>
+		</label>
+		<button type="submit">add note</button>
+	</form>
+	{{ end }}
+	<hr>
 	<table>
 		<thead>
 			<tr><th>user</th><th>date</th><th>comment</th><th>value(s)</th></tr>
 		</thead>
 		<tbody>
 		{{ range .Project.Notes }}
-			<tr><td>{{ .UserID }}</td><td>{{ .CreationDate | prettyDate }}</td><td>{{ .Comment }}</td><td>{{ range $measureId, $value := .MeasuresValues }}{{ $value }}({{$measureId }}) {{ end }}</td></tr>
+			<tr>
+				<td>{{ (index $project.Users .UserID).Name }}</td>
+				<td>{{ .CreationDate | prettyDate }}</td>
+				<td>{{ .Comment }}</td>
+				<td>
+					<table>
+					{{ range $measureId, $value := .MeasuresValues }}
+						{{ $measure := index $project.Measures $measureId }}
+						<tr><td>{{ $measure.Name }}: {{ $value }} {{ $measure.Unit }}</td></tr>
+					{{ end }}
+					</table>
+				</td>
+			</tr>
 		{{ else }}
 			<tr><td colspan="4"><em>no notes</em></td></tr>
 		{{ end }}

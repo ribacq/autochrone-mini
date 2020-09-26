@@ -3,35 +3,15 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
-	"os"
-	"bufio"
-	"log"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
-
-	englishWordsFile, err := os.Open("assets/words_alpha.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer englishWordsFile.Close()
-	scanner := bufio.NewScanner(englishWordsFile)
-	var englishWords []string
-	for scanner.Scan() {
-		englishWords = append(englishWords, scanner.Text())
-	}
-	if err = scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-	rand.Seed(time.Now().UnixNano())
-	fmt.Printf("%s-%s-%s-%s\n", englishWords[rand.Intn(len(englishWords))], englishWords[rand.Intn(len(englishWords))], englishWords[rand.Intn(len(englishWords))], englishWords[rand.Intn(len(englishWords))])
 
 	r.SetFuncMap(template.FuncMap{
 		"prettyDate": func(t time.Time) string {
@@ -48,8 +28,6 @@ func main() {
 	r.POST("/", RootPOST)
 	r.GET("/:pslug", ProjectGET)
 	r.POST("/:pslug", ProjectPOST)
-	r.GET("/:pslug/admin", ProjectAdminGET)
-	r.POST("/:pslug/admin", ProjectAdminPOST)
 
 	r.Run(":8080")
 }
@@ -88,23 +66,32 @@ func RootPOST(c *gin.Context) {
 // ProjectGET read-only project or user write access (add notes, delete own notes, with ?auth=str)
 func ProjectGET(c *gin.Context) {
 	project := GetProjectBySlug(c.Param("pslug"))
-	c.HTML(http.StatusOK, "project-read-only-page", gin.H{
+	if project == nil {
+		c.Redirect(http.StatusNotFound, "/")
+		return
+	}
+	c.HTML(http.StatusOK, "project-page", gin.H{
 		"Project": project,
-		"AdminCode": c.Query("adminCode"),
+		"User":    project.GetUserBySlug(c.Query("auth")),
 	})
 }
 
-// ProjectPOST add note
+// ProjectPOST add note, user or measure
 func ProjectPOST(c *gin.Context) {
-	c.Redirect(http.StatusFound, "/")
-}
+	project := GetProjectBySlug(c.Param("pslug"))
+	if project == nil {
+		c.Redirect(http.StatusNotFound, "/")
+		return
+	}
+	user := project.GetUserBySlug(c.Query("auth"))
 
-// ProjectAdminGET project admin
-func ProjectAdminGET(c *gin.Context) {
-	c.Redirect(http.StatusFound, "/")
-}
+	switch c.PostForm("query") {
+	case "new-user":
+		username := c.PostForm("username")
+		if user.IsAdmin && username != "" {
+			project.NewUser(username, c.PostForm("is-admin") == "on")
+		}
+	}
 
-// ProjectAdminGET update project
-func ProjectAdminPOST(c *gin.Context) {
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, fmt.Sprintf("/%s?auth=%s", project.Slug, user.Slug))
 }

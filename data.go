@@ -27,9 +27,9 @@ type Project struct {
 	Description  string    `db:"description"`
 	CreationDate time.Time `db:"creation_date"`
 	TargetDate   time.Time `db:"target_date"`
-	Users        []*User
-	Measures     []*Measure
-	Notes        []*Note
+	Users        map[int]*User
+	Measures     map[int]*Measure
+	Notes        map[int]*Note
 }
 
 // User an autochrone user
@@ -44,16 +44,20 @@ type User struct {
 
 // Measure an autochrone measure
 type Measure struct {
-	ID          int    `db:"id"`
-	ProjectID   int    `db:"project_id"`
-	Code        string `db:"code"`
-	Name        string `db:"name"`
-	Unit        string `db:"unit"`
-	HasGoalLow  bool
-	GoalLow     int
-	HasGoalHigh bool
-	GoalHigh    int
+	ID            int    `db:"id"`
+	ProjectID     int    `db:"project_id"`
+	Code          string `db:"code"`
+	Name          string `db:"name"`
+	Unit          string `db:"unit"`
+	GoalDirection string `db:"goal_direction"`
+	Goal          int    `db:"goal"`
 }
+
+// HasMin m.GoalDirection == "min"
+func (m *Measure) HasMin() bool { return m.GoalDirection == "min" }
+
+// HasMax m.GoalDirection == "max"
+func (m *Measure) HasMax() bool { return m.GoalDirection == "max" }
 
 // Note an autochrone note
 type Note struct {
@@ -81,13 +85,13 @@ func NewProject(slug, name, description string, targetDate time.Time) *Project {
 		Description:  description,
 		CreationDate: creationDate,
 		TargetDate:   targetDate,
-		Users:        []*User{},
+		Users:        make(map[int]*User),
 	}
 }
 
 // AddUser adds a user to an existing project
 func (p *Project) NewUser(name string, isAdmin bool) *User {
-	slug := "anursiet"
+	slug := RandomSlug()
 	creationDate := time.Now()
 	row := db.QueryRowx("insert into users (project_id, is_admin, slug, name, creation_date) values ($1, $2, $3, $4, $5) returning id", p.ID, isAdmin, slug, name, creationDate)
 	var id int
@@ -103,7 +107,7 @@ func (p *Project) NewUser(name string, isAdmin bool) *User {
 		Name:         name,
 		CreationDate: creationDate,
 	}
-	p.Users = append(p.Users, u)
+	p.Users[u.ID] = u
 	return u
 }
 
@@ -136,42 +140,30 @@ func (p *Project) FetchUsers() error {
 	if err != nil {
 		return err
 	}
-	p.Users = []*User{}
+	p.Users = make(map[int]*User)
 	for rows.Next() {
 		u := &User{}
 		if err = rows.StructScan(u); err != nil {
 			return err
 		}
-		p.Users = append(p.Users, u)
+		p.Users[u.ID] = u
 	}
 	return nil
 }
 
 // FetchMeasures loads measures for a project
 func (p *Project) FetchMeasures() error {
-	rows, err := db.Queryx("select id, project_id, code, name, unit from measures where project_id = $1", p.ID)
+	rows, err := db.Queryx("select id, project_id, code, name, unit, goal_direction, goal from measures where project_id = $1", p.ID)
 	if err != nil {
 		return err
 	}
-	p.Measures = []*Measure{}
+	p.Measures = make(map[int]*Measure)
 	for rows.Next() {
 		m := &Measure{}
 		if err := rows.StructScan(m); err != nil {
 			return err
 		}
-		row := db.QueryRowx("select goal_low, goal_high from measures_goals where measure_id = $1", m.ID)
-		var gL, gH *int
-		if err := row.Scan(&gL, &gH); err == nil {
-			if gL != nil {
-				m.HasGoalLow = true
-				m.GoalLow = *gL
-			}
-			if gH != nil {
-				m.HasGoalHigh = true
-				m.GoalHigh = *gH
-			}
-		}
-		p.Measures = append(p.Measures, m)
+		p.Measures[m.ID] = m
 	}
 	return nil
 }
@@ -182,7 +174,7 @@ func (p *Project) FetchNotes() error {
 	if err != nil {
 		return err
 	}
-	p.Notes = []*Note{}
+	p.Notes = make(map[int]*Note)
 	for rows.Next() {
 		n := &Note{
 			MeasuresValues: make(map[int]int),
@@ -201,7 +193,17 @@ func (p *Project) FetchNotes() error {
 			}
 			n.MeasuresValues[measureId] = value
 		}
-		p.Notes = append(p.Notes, n)
+		p.Notes[n.ID] = n
+	}
+	return nil
+}
+
+// GetUserBySlug returns the project’s user with the given slug
+func (p *Project) GetUserBySlug(slug string) *User {
+	for _, user := range p.Users {
+		if user.Slug == slug {
+			return user
+		}
 	}
 	return nil
 }

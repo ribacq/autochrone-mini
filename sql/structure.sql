@@ -16,19 +16,17 @@ create table if not exists users (
 	creation_date timestamp not null
 );
 
+create type goal_direction_type as enum ('min', 'max', 'none');
+
 create table if not exists measures (
 	id serial primary key,
 	project_id int not null references projects(id),
 	code varchar(42) not null,
-	name varchar(42) not null,
+	name varchar(140) not null,
 	unit varchar(42) not null,
+	goal_direction goal_direction_type not null,
+	goal int not null,
 	unique (project_id, code)
-);
-
-create table if not exists measures_goals (
-	measure_id int primary key references measures(id),
-	goal_low int not null,
-	goal_high int not null
 );
 
 create table if not exists notes (
