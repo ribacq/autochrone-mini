@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -36,7 +37,7 @@ func main() {
 	r.GET("/:pslug", ProjectGET)
 	r.POST("/:pslug", ProjectPOST)
 
-	r.Run(":443")
+	r.Run(":" + os.Getenv("PORT"))
 }
 
 // RootGET project creation form + about
