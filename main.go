@@ -68,7 +68,7 @@ func RootPOST(c *gin.Context) {
 		c.Redirect(http.StatusSeeOther, "/")
 		return
 	}
-	c.Redirect(http.StatusFound, fmt.Sprintf("/%s", project.Slug))
+	c.Redirect(http.StatusFound, fmt.Sprintf("/%s?auth=%s", project.Slug, user.Slug))
 }
 
 // ProjectGET read-only project or user write access (add notes, delete own notes, with ?auth=str)
