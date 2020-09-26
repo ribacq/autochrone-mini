@@ -46,18 +46,18 @@ func RootPOST(c *gin.Context) {
 	targetDate, err := time.Parse("2006-01-02", c.PostForm("target-date"))
 
 	if name == "" || slug == "" || admin == "" || len(name) > 140 || len(name) > 140 || len(admin) > 140 || len(description) > 1000 || err != nil {
-		c.Redirect(http.StatusBadRequest, "/")
+		c.Redirect(http.StatusSeeOther, "/")
 		return
 	}
 
 	project := NewProject(slug, name, description, targetDate)
 	if project == nil {
-		c.Redirect(http.StatusInternalServerError, "/")
+		c.Redirect(http.StatusSeeOther, "/")
 		return
 	}
 	user := project.NewUser(admin, true)
 	if user == nil {
-		c.Redirect(http.StatusInternalServerError, "/")
+		c.Redirect(http.StatusSeeOther, "/")
 		return
 	}
 	c.Redirect(http.StatusFound, fmt.Sprintf("/%s", project.Slug))
@@ -67,7 +67,7 @@ func RootPOST(c *gin.Context) {
 func ProjectGET(c *gin.Context) {
 	project := GetProjectBySlug(c.Param("pslug"))
 	if project == nil {
-		c.Redirect(http.StatusNotFound, "/")
+		c.Redirect(http.StatusSeeOther, "/")
 		return
 	}
 	c.HTML(http.StatusOK, "project-page", gin.H{
@@ -80,7 +80,7 @@ func ProjectGET(c *gin.Context) {
 func ProjectPOST(c *gin.Context) {
 	project := GetProjectBySlug(c.Param("pslug"))
 	if project == nil {
-		c.Redirect(http.StatusNotFound, "/")
+		c.Redirect(http.StatusSeeOther, "/")
 		return
 	}
 	user := project.GetUserBySlug(c.Query("auth"))
