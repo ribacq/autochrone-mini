@@ -19,7 +19,7 @@
 		{{ range .Project.Users }}
 			<li>
 				{{ if $user }}{{ if eq $user.ID .ID }}<strong>me&gt;</strong>{{ end }}{{ end }} {{ if .IsAdmin }}&#128081;{{ end }} {{ .Name }}
-				{{ if $user }}{{ if $user.IsAdmin }}<input type="text" readonly value="http://localhost:8080/{{ $project.Slug }}/?auth={{ .Slug }}">{{ end }}{{ end }}
+				{{ if $user }}{{ if $user.IsAdmin }}<input type="text" readonly value="https://autochrone.herokuapp.com/{{ $project.Slug }}/?auth={{ .Slug }}">{{ end }}{{ end }}
 			</li>
 		{{ else }}
 			<li><em>no users</em></li>
