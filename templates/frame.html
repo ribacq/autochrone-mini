@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>autochrone</title>
+		<title>{{ with .Project }}{{ .Name }} - {{ end }}autochrone</title>
 		<style type="text/css">
 			body {
 				margin: 40px auto;
@@ -18,6 +18,15 @@
 
 			h1, h2, h3 {
 				line-height: 1.2;
+			}
+			
+			h1 a, h2 a, h3 a {
+				color: inherit;
+				text-decoration: none;
+			}
+
+			h1 a:hover, h2 a:hover, h3 a:hover {
+				text-decoration: underline;
 			}
 
 			form label, form button {
@@ -55,7 +64,7 @@
 		</style>
 	</head>
 	<body>
-		<header><a href="/"><h1>autochrone</h1></a></header>
+		<header><h1><a href="/">autochrone</a></h1></header>
 {{ end }}
 {{ define "footer" }}
 	</body>

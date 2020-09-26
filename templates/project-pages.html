@@ -1,9 +1,9 @@
 {{ define "project-page" }}
-{{ template "header" }}
+{{ template "header" . }}
 {{ $project := .Project }}
 {{ $user := .User }}
 <section>
-	<h2>{{ .Project.Name }}</h2>
+	<h2><a href="{{ .Project.Slug }}">{{ .Project.Name }}</a></h2>
 	<p class="project-description">{{ .Project.Description }}</p>
 	<time datetime="{{ .Project.CreationDate | formDate }}">{{ .Project.CreationDate | prettyDate }}</time>
 	—
