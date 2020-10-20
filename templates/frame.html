@@ -1,4 +1,8 @@
 {{ define "header" }}
+{{ $userSlug := "" }}
+{{ with .User }}
+{{ $userSlug = .Slug }}
+{{ end }}
 <!doctype html>
 <html>
 	<head>
@@ -23,7 +27,26 @@
 				justify-content: flex-start;
 			}
 
-			header h1 {
+			section#tasks-cards {
+				justify-content: space-around;
+			}
+
+			section#tasks-cards article {
+				flex: 1 1 200px;
+				min-width: 30%;
+				margin: 10px;
+			}
+
+			header {
+				display: flex;
+				flex-flow: row wrap;
+				justify-content: space-between;
+				background: #444;
+				color: #eee;
+			}
+
+			header h1,
+			header h2 {
 				padding: 10px;
 			}
 
@@ -48,10 +71,6 @@
 			h1 a, h2 a, h3 a {
 				color: inherit;
 				text-decoration: none;
-			}
-
-			h1 a:hover, h2 a:hover, h3 a:hover {
-				text-decoration: underline;
 			}
 
 			form label, form button {
@@ -89,7 +108,10 @@
 		</style>
 	</head>
 	<body>
-		<header><h1><a href="/">autochrone</a></h1></header>
+		<header>
+			{{ with .Project }}<h1 id="project-title-header"><a href="/{{ .Slug }}{{ with $userSlug }}?auth={{ $userSlug }}{{ end }}">{{ .Name }}</a></h1>{{ end }}
+			<h2><a href="/">autochrone</a></h2>
+		</header>
 {{ end }}
 {{ define "footer" }}
 	</body>

@@ -2,9 +2,18 @@
 {{ template "header" . }}
 {{ $project := .Project }}
 {{ $user := .User }}
+<section id="tasks-cards">
+	<article id="stats-card">
+		<h2>Project stats</h2>
+	</article>
+	{{ range .Project.Tasks }}
+	<article style="background: {{ .Color }};">
+		<h2>{{ .Description }}</h2>
+	</article>
+	{{ end }}
+</section>
 <section>
 	<aside>
-		<h2><a href="{{ .Project.Slug }}">{{ .Project.Name }}</a></h2>
 		<p class="project-description">{{ .Project.Description }}</p>
 		<p>
 			<time datetime="{{ .Project.CreationDate | formDate }}">{{ .Project.CreationDate | prettyDate }}</time>

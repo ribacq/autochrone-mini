@@ -5,7 +5,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"log"
-	"os"
+	//"os"
 	"time"
 )
 
@@ -15,8 +15,8 @@ func init() {
 	// connect to database
 	var err error
 	// for local tests
-	//db, err = sqlx.Open("postgres", "user=autochrone password=autochrone dbname=achr sslmode=disable")
-	db, err = sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
+	db, err = sqlx.Open("postgres", "user=autochrone password=autochrone dbname=achr sslmode=disable")
+	//db, err = sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		panic("could not connect to database")
 	}
