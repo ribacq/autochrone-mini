@@ -16,6 +16,16 @@ create table if not exists users (
 	creation_date timestamp not null
 );
 
+create table if not exists tasks (
+	id serial primary key,
+	project_id int not null references projects(id),
+	description varchar(140) not null,
+	creation_date timestamp not null,
+	end_date timestamp not null default('1970-01-01'),
+	cancelled boolean not null default(false),
+	color varchar(42) not null
+);
+
 create type goal_direction_type as enum ('min', 'max', 'none');
 
 create table if not exists measures (
@@ -33,6 +43,7 @@ create table if not exists notes (
 	id serial primary key,
 	project_id int not null references projects(id),
 	user_id int not null references users(id),
+	task_id int not null references tasks(id),
 	creation_date timestamp not null,
 	comment varchar(1000) not null
 );

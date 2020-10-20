@@ -32,6 +32,7 @@ type Project struct {
 	TargetDate   time.Time `db:"target_date"`
 	Users        map[int]*User
 	Measures     map[int]*Measure
+	Tasks        map[int]*Task
 	Notes        []*Note
 }
 
@@ -43,6 +44,17 @@ type User struct {
 	Slug         string    `db:"slug"`
 	Name         string    `db:"name"`
 	CreationDate time.Time `db:"creation_date"`
+}
+
+// Task an autochrone project task
+type Task struct {
+	ID           int       `db:"id"`
+	ProjectID    int       `db:"project_id"`
+	Description  string    `db:"description"`
+	CreationDate time.Time `db:"creation_date"`
+	EndDate      time.Time `db:"end_date"`
+	Cancelled    bool      `db:"cancelled"`
+	Color        string    `db:"color"`
 }
 
 // Measure an autochrone measure
@@ -67,6 +79,7 @@ type Note struct {
 	ID             int       `db:"id"`
 	ProjectID      int       `db:"project_id"`
 	UserID         int       `db:"user_id"`
+	TaskID         int       `db:"task_id"`
 	CreationDate   time.Time `db:"creation_date"`
 	Comment        string    `db:"comment"`
 	MeasuresValues map[int]int
@@ -135,6 +148,7 @@ func (p *Project) NewMeasure(code, name, unit, goalDirection string, goal int) *
 	return m
 }
 
+// NewNote adds a note to an existing project
 func (p *Project) NewNote(userID int, comment string, measuresValues map[int]int) *Note {
 	creationDate := time.Now().UTC()
 	row := db.QueryRowx("insert into notes (project_id, user_id, creation_date, comment) values ($1, $2, $3, $4) returning id", p.ID, userID, creationDate, comment)
@@ -181,6 +195,10 @@ func GetProjectBySlug(slug string) *Project {
 		log.Print(err)
 		return nil
 	}
+	if err := p.FetchTasks(); err != nil {
+		log.Print(err)
+		return nil
+	}
 	if err := p.FetchNotes(); err != nil {
 		log.Print(err)
 		return nil
@@ -222,9 +240,26 @@ func (p *Project) FetchMeasures() error {
 	return nil
 }
 
+// FetchTasks loads tasks for a project
+func (p *Project) FetchTasks() error {
+	rows, err := db.Queryx("select id, project_id, description, creation_date, end_date, cancelled, color from tasks where project_id = $1", p.ID)
+	if err != nil {
+		return err
+	}
+	p.Tasks = make(map[int]*Task)
+	for rows.Next() {
+		t := &Task{}
+		if err := rows.StructScan(t); err != nil {
+			return err
+		}
+		p.Tasks[t.ID] = t
+	}
+	return nil
+}
+
 // FetchNotes loads notes for a project
 func (p *Project) FetchNotes() error {
-	rows, err := db.Queryx("select id, project_id, user_id, creation_date, comment from notes where project_id = $1 order by creation_date desc", p.ID)
+	rows, err := db.Queryx("select id, project_id, user_id, task_id, creation_date, comment from notes where project_id = $1 order by creation_date desc", p.ID)
 	if err != nil {
 		return err
 	}
